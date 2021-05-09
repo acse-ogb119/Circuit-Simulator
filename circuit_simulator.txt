@@ -1,0 +1,45 @@
+class CCircuit
+	int num_units; // number of units in the circuit
+	int feed_num;  // index of the unit which receives the feed
+
+	CUnit *unit;   // array to store each unit object
+
+	CStream Feed, Conc, Tails;    // input and output streams
+	CStream Conc_Old, Tails_Old;
+
+	double *conc_value; // value of flowrates of components in the conc stream
+
+	void Setup_Units(int num);            // call constructor for and allocate memory for each unit in the circuit
+	void Setup_From_Vector(int *vector);  // set feed_num as vector[0]
+					      // set the destination units of each unit (-1 for final conc stream, -2 for final tails stream)
+
+	void set_initial_forward(int cell);   // recursive function to fill initial guess (called externally using the feed unit index as the input cell number)
+					      // ignores any recycling (therefore if no recycling in the vector then this "initial guess" is already the correct solution)
+					      // 1. Mark cell as being visited --> 2. calculate unit flow from feed --> 3. Set the destination cell feeds -->
+					      // 4. move on to destination cell (provided it hasn't already been marked as visited i.e. ignoring recycling)
+
+	void copy_clear_feeds();              // Copy current stream values into the _Old stream values (uses overloaded =)
+
+	double Run_Simulation(double tot_rel, int max_it, bool &diverged);  // compute circuit performance using successive substitution algorithm
+
+
+class CUnit
+	CStream Feed, Conc, Tails;      // input and output streams
+	CStream Feed_Old;               // 
+	int conc_num, tails_num;        // destination units
+	bool mark;                      //
+
+	static double *proportion_to_conc; // array to hold  values of A, B according to:
+					   // A % of valuable material goes into conc stream and B % of waste material goes into conc stream	
+
+	void Calculate_Unit();  // Computes the component flows in the conc and tail streams from the feed stream
+
+
+class CStream
+
+	static int num_components; // 2 components per stream (valuable, waste)
+	double *M_component; // array to store flow rate of each component in the stream
+
+ 	+ overloaded to add the M_component array values of two CStream objects together
+ 	= overloaded to set M_component array values of one CStream object equal to that of another
+	[] overloaded to access values in the M_component array
